@@ -33,7 +33,7 @@ typedef t_no * t_lista;
 
 typedef struct rgm {
 	char	            matricula[10];
-    struct disciplina * t_disciplina;
+    struct no *         disciplinas;
 } Registro_matricula;
 
 typedef struct l {
@@ -69,12 +69,29 @@ int deslocaDireita(Lista * l, int pos) {
     }
 }
 
-int inserirPos (Lista * l, int pos, Registro_matricula dado) {
+t_no * criaNo() {
+    t_no * no = (t_no *) malloc(sizeof(t_no));
+
+    if (no)
+        no->prox = NULL;
+
+    return no;
+}
+
+int inserirPos (Lista * l, int pos, Registro_matricula dado, char *nome_dis, int nota_dis) {
     if (isCheia(l) || (pos > l->qtd_alunos + 1) || (pos < 0))
         return 0;
 
     deslocaDireita(l, pos);
     l->alunos[pos] = dado;
+
+    l->alunos[pos].disciplinas = criaNo();
+
+
+    strcpy(&(l->alunos[pos].disciplinas->dado.nome_disciplina), nome_dis);
+
+    l->alunos[pos].disciplinas->dado.nota = nota_dis;
+
     (l->qtd_alunos)++;
     return 1;
 }
@@ -133,7 +150,7 @@ int getPosRGMInserirOrd(Lista * l, char matricula[]) {
     return 0;
 }
 
-int inserirOrdenada (Lista * l, Registro_matricula dado) {
+int inserirOrdenada (Lista * l, Registro_matricula dado, char *nome_dis, int nota_dis) {
 	int pos;
 	
     if (isCheia(l)) {
@@ -145,106 +162,12 @@ int inserirOrdenada (Lista * l, Registro_matricula dado) {
     } else {
         pos = getPosRGMInserirOrd(l, dado.matricula);
     }
-	
-	inserirPos(l, pos, dado);	
+
+    
+	inserirPos(l, pos, dado, nome_dis, nota_dis);	
 
     return 1;
 }
-
-// t_no * getNo(t_lista lista, int pos) {
-//     // Retorna 0 se posicao invalida. Do contrario, retorna o elemento
-//     int n = 0;
-
-//     if (pos<0)
-//         return 0; // erro: posicao invalida
-
-//     while (lista != NULL) {
-//         if (n==pos)
-//             return lista;
-//         lista = lista->prox;
-//         n++;
-//     }
-//     return 0; // erro: posicao invalida
-// }
-
-// int getTamanhoDis(t_lista lista) {
-//     int n = 0;
-//     while (lista != NULL) {
-//         lista = lista->prox;
-//         n++;
-//     }
-//     return n;
-// }
-
-// t_disciplina * getDisciplina(t_lista lista, int pos) {
-//     t_no * no = getNo(lista, pos);
-//     if (no != NULL)
-//         return &(no->dado);
-//     else
-//         return NULL;
-// }
-
-// int inserirDis(t_lista *lista, int pos, t_disciplina dado) {
-//     t_no * p, * novo;
-
-//     // inserção na primeira posicao ou em lista vazia
-//     if (pos == 0) {
-//         novo = criaNo();
-//         if (novo == NULL)
-//             return 0; // erro: memoria insuficiente
-//         novo->dado = dado;
-//         novo->prox = *lista;
-//         *lista = novo;
-//         return 1;
-//     }
-//     // insercao apos a primeira posicao em lista nao vazia
-//     p = getNo(*lista, pos-1);
-//     if (p == NULL)
-//          return 0; // erro: posicao invalida 
-//     novo = criaNo();
-//     if (novo == NULL)
-//         return 0; // erro: memoria insuficiente
-//     novo->dado = dado;
-//     novo->prox = p->prox;
-//     p->prox = novo;
-
-//     return 1;
-// }
-
-// void mostraLista(t_lista lista) {
-// 	int cnt = 0;
-	
-// 	while(lista != NULL) {
-// 		printf("Elemento [%d] tem [%s]\n", ++cnt, lista->dado.nome_disciplina);
-// 		lista = lista->prox;
-// 	}
-	
-// 	if(!cnt)
-// 		printf("Lista vazia\n");
-// }
-
-
-// int remover(t_lista * lista, int pos) {
-//     t_no * anterior,  *p;
-//     if (isVazia(*lista)) return 0; // erro: lista vazia
-//     if (pos<0) return 0; // erro: posicao invalida
-
-//     // remocao da primeira posicao em lista nao vazia
-//     if (pos == 0) {
-//         p = *lista;
-//         *lista = p->prox;
-//     } else { // remocao em qualquer posicao
-//         anterior = getNo(*lista, pos-1);
-//         if (anterior == NULL)
-//             return 0; // erro: posicao invalida
-//         p = anterior->prox;
-//         if (p == NULL)
-//             return 0; // erro: posicao invalida
-//         anterior->prox = p->prox;
-//     }
-//     free(p);
-//     return 1;
-// }
 
 void mostrar(Lista * l){
 	
@@ -253,12 +176,116 @@ void mostrar(Lista * l){
 	printf("Minha lista de alunos\n");
 	for(i = 0; i <= l->qtd_alunos; i++) {
 		printf("Rgm: %s\n", l->alunos[i].matricula);
+        mostraListaDis(l->alunos[i].disciplinas);
 	}
 }
 
 int buscar(Lista *l, char str[], int rgm) {
     return getPosRGM(l, str);
 }
+
+
+t_no * getNo(t_lista lista, int pos) {
+    // Retorna 0 se posicao invalida. Do contrario, retorna o elemento
+    int n = 0;
+
+    if (pos<0)
+        return 0; // erro: posicao invalida
+
+    while (lista != NULL) {
+        if (n==pos)
+            return lista;
+        lista = lista->prox;
+        n++;
+    }
+    return 0; // erro: posicao invalida
+}
+
+int getTamanhoDis(t_lista lista) { //Pega a quantidade de elementos na lista de disciplinas
+    int n = 0;
+    while (lista != NULL) {
+        lista = lista->prox;
+        n++;
+    }
+    return n;
+}
+
+t_disciplina * getDisciplina(t_lista lista, int pos) { //Retorna o ponteiro do dado contido no no
+    t_no * no = getNo(lista, pos);
+    if (no != NULL)
+        return &(no->dado);
+    else
+        return NULL;
+}
+
+int inserirDis(t_lista *lista, int pos, t_disciplina dado) {
+    t_no * p, * novo;
+
+    // inserção na primeira posicao ou em lista vazia
+    if (pos == 0) {
+        novo = criaNo();
+        if (novo == NULL)
+            return 0; // erro: memoria insuficiente
+        novo->dado = dado;
+        novo->prox = *lista;
+        *lista = novo;
+        return 1;
+    }
+    // insercao apos a primeira posicao em lista nao vazia
+    p = getNo(*lista, pos-1);
+    if (p == NULL)
+         return 0; // erro: posicao invalida 
+
+    novo = criaNo();
+
+    if (novo == NULL)
+        return 0; // erro: memoria insuficiente
+    
+    novo->dado = dado;
+    novo->prox = p->prox;
+    p->prox = novo;
+
+    return 1;
+}
+
+void mostraListaDis(t_lista lista) {
+	int cnt = 0;
+	
+	while(lista != NULL) {
+		printf("Disciplina: %s\n", &lista->dado.nome_disciplina);
+		printf("Nota: %d\n", lista->dado.nota);
+        cnt++;
+		lista = lista->prox;
+	}
+	
+	if(!cnt)
+		printf("Lista vazia\n");
+}
+
+
+int removerDis(t_lista * lista, int pos) {
+    t_no * anterior,  *p;
+    if (isVazia(*lista)) return 0; // erro: lista vazia
+    if (pos<0) return 0; // erro: posicao invalida
+
+    // remocao da primeira posicao em lista nao vazia
+    if (pos == 0) {
+        p = *lista;
+        *lista = p->prox;
+    } else { // remocao em qualquer posicao
+        anterior = getNo(*lista, pos-1);
+        if (anterior == NULL)
+            return 0; // erro: posicao invalida
+        p = anterior->prox;
+        if (p == NULL)
+            return 0; // erro: posicao invalida
+        anterior->prox = p->prox;
+    }
+    free(p);
+    return 1;
+}
+
+
 
 int	main() {
 	setlocale(0,"Portuguese");
@@ -267,7 +294,7 @@ int	main() {
 	Registro_matricula rgm;
     t_disciplina mDis;
 	t_lista	mLista = NULL;
-	t_no *	mNo;
+
 	t_lista	aux = NULL;
 
     int opt, posOrdenada, i;
@@ -298,10 +325,16 @@ int	main() {
                 while(resp == 's') {
                     printf("RGM:");
                     scanf("%49s", rgm.matricula);
-                    inserirOrdenada(&myLista, rgm);
 
-                    // printf("Nome da disciplina: ");
-                    // scand("%49", &(mDis));
+                    printf("Nome da disciplina: ");
+                    scanf("%49s", &(mDis.nome_disciplina));
+
+                    printf("Nota da disciplina: ");
+                    scanf("%d", &(mDis.nota));
+
+                    printf("%s e %d", mDis.nome_disciplina, mDis.nota);
+
+                    inserirOrdenada(&myLista, rgm, &mDis.nome_disciplina, mDis.nota);
 
                     // posOrdenada = getPosicaoInsercaoOrdenada(mLista, mDis);
 		            // inserir(&mLista, posOrdenada, mDis);
